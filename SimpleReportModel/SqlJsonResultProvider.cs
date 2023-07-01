@@ -5,27 +5,34 @@ namespace SimpleReportModel;
 
 public class SqlJsonResultProvider : IProvideJsonResult
 {
-  public string GetQueryResult(string queryForJson, SqlConnection connection)
+  private readonly Func<SqlConnection> connectionFactory;
+
+  public SqlJsonResultProvider(Func<SqlConnection> connectionFactory)
   {
-    using (var cmd = connection.CreateCommand())
+    this.connectionFactory = connectionFactory;
+  }
+
+  public async Task<string> GetQueryResult(string queryForJson)
+  {
+    using var connection = connectionFactory();
+    using var cmd = connection.CreateCommand();
+    cmd.CommandText = queryForJson;
+
+    var jsonResult = new StringBuilder();
+    var reader = await cmd.ExecuteReaderAsync();
+
+    if (!reader.HasRows)
     {
-      cmd.CommandText = queryForJson;
-
-      var jsonResult = new StringBuilder();
-      var reader = cmd.ExecuteReader();
-
-      if (!reader.HasRows)
-      {
-        jsonResult.Append("[]");
-      }
-      else
-      {
-        while (reader.Read())
-        {
-          jsonResult.Append(reader.GetValue(0).ToString());
-        }
-      }
-      return jsonResult.ToString();
+      jsonResult.Append("[]");
     }
+    else
+    {
+      while (await reader.ReadAsync())
+      {
+        jsonResult.Append(reader.GetValue(0).ToString());
+      }
+    }
+
+    return jsonResult.ToString();
   }
 }

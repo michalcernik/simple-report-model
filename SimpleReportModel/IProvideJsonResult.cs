@@ -4,5 +4,5 @@ namespace SimpleReportModel;
 
 public interface IProvideJsonResult
 {
-  string GetQueryResult(string queryForJson, SqlConnection connection);
+  Task<string> GetQueryResult(string queryForJson);
 }

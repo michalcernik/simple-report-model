@@ -1,5 +1,4 @@
-﻿using Microsoft.Data.SqlClient;
-using System.Text.Json;
+﻿using System.Text.Json;
 
 namespace SimpleReportModel;
 
@@ -12,10 +11,10 @@ public class ReportDataProvider : IProvideReportData
     this.jsonProvider = jsonProvider;
   }
   
-  public IReadOnlyCollection<T> Get<T>(string queryForJson, SqlConnection connection, Action<JsonSerializerOptions> setupOptions = null)
+  public async Task<IReadOnlyCollection<T>> Get<T>(string queryForJson, Action<JsonSerializerOptions> setupOptions = null)
     where T : class
   {
-    var json = jsonProvider.GetQueryResult(queryForJson, connection);
+    var json = await jsonProvider.GetQueryResult(queryForJson);
     
     var serializerOptions = new JsonSerializerOptions();
     if (setupOptions != null)

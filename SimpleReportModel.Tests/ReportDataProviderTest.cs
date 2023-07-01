@@ -18,38 +18,38 @@ public class ReportDataProviderTest
   }
 
   [Fact]
-  public void GetReturnsEmptyWhenNoRows()
+  public async Task GetReturnsEmptyWhenNoRows()
   {
-    jsonResultProviderMock.Setup(m => m.GetQueryResult(It.IsAny<string>(), It.IsAny<SqlConnection>()))
-      .Returns(() => "[]");
+    jsonResultProviderMock.Setup(m => m.GetQueryResult(It.IsAny<string>()))
+      .ReturnsAsync(() => "[]");
 
-    var returnedData = testedInstance.Get<EmptyClass>(string.Empty, null);
+    var returnedData = await testedInstance.Get<EmptyClass>(string.Empty);
 
     returnedData.Should().NotBeNull();
     returnedData.Should().BeEmpty();
   }
 
   [Fact]
-  public void GetReturnsExpectedNumberOfEntities()
+  public async Task GetReturnsExpectedNumberOfEntities()
   {
-    jsonResultProviderMock.Setup(m => m.GetQueryResult(It.IsAny<string>(), It.IsAny<SqlConnection>()))
-      .Returns(() => "[{},{}]");
+    jsonResultProviderMock.Setup(m => m.GetQueryResult(It.IsAny<string>()))
+      .ReturnsAsync(() => "[{},{}]");
 
-    var returnedData = testedInstance.Get<EmptyClass>(string.Empty, null);
+    var returnedData = await testedInstance.Get<EmptyClass>(string.Empty);
 
     returnedData.Should().NotBeNullOrEmpty();
     returnedData.Count.Should().Be(2);
   }
 
   [Fact]
-  public void GetThrowsOnRootEntity()
+  public async Task GetThrowsOnRootEntity()
   {
-    jsonResultProviderMock.Setup(m => m.GetQueryResult(It.IsAny<string>(), It.IsAny<SqlConnection>()))
-      .Returns(() => "{}");
+    jsonResultProviderMock.Setup(m => m.GetQueryResult(It.IsAny<string>()))
+      .ReturnsAsync(() => "{}");
 
-    var action = () => testedInstance.Get<EmptyClass>(string.Empty, null);
+    var action = () => testedInstance.Get<EmptyClass>(string.Empty);
 
-    action.Should().Throw<JsonException>();
+    await action.Should().ThrowAsync<JsonException>();
   }
 
   public class EmptyClass
