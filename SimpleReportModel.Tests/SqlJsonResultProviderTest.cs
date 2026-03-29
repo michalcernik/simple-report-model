@@ -1,40 +1,45 @@
+using Microsoft.Data.SqlClient;
 using Shouldly;
-using Moq;
-using Moq.Protected;
-using System.Data;
-using System.Data.Common;
+using System.Text.Json;
 
 namespace SimpleReportModel.Tests;
 
 public class SqlJsonResultProviderTest
 {
+  private const string ConnectionString = @"Server=(localdb)\MSSQLLocalDB;Integrated Security=true;";
+
   [Fact]
   public void GetQueryResultConcatenatesMultipleRows()
   {
-    var readerMock = new Mock<DbDataReader>();
-    readerMock.Setup(r => r.HasRows).Returns(true);
-    readerMock.SetupSequence(r => r.Read())
-      .Returns(true)
-      .Returns(true)
-      .Returns(false);
-    readerMock.SetupSequence(r => r.GetValue(0))
-      .Returns("[{\"Id\":1}")
-      .Returns(",{\"Id\":2}]");
+    // SQL Server splits JSON output at ~2033 bytes per row.
+    // REPLICATE('x', 2000) per row forces the total output to exceed that threshold.
+    var query = @"
+      SELECT REPLICATE('x', 2000) AS Data
+      FROM (VALUES (1),(2)) AS t(n)
+      FOR JSON PATH";
 
-    var commandMock = new Mock<DbCommand>();
-    commandMock.SetupProperty(c => c.CommandText);
-    commandMock.Protected()
-      .Setup<DbDataReader>("ExecuteDbDataReader", ItExpr.IsAny<CommandBehavior>())
-      .Returns(readerMock.Object);
-
-    var connectionMock = new Mock<DbConnection>();
-    connectionMock.Protected()
-      .Setup<DbCommand>("CreateDbCommand")
-      .Returns(commandMock.Object);
+    using var connection = new SqlConnection(ConnectionString);
+    connection.Open();
 
     var provider = new SqlJsonResultProvider();
-    var result = provider.GetQueryResult("SELECT * FOR JSON PATH", connectionMock.Object);
+    var result = provider.GetQueryResult(query, connection);
 
-    result.ShouldBe("[{\"Id\":1},{\"Id\":2}]");
+    var parsed = JsonSerializer.Deserialize<JsonElement>(result);
+    parsed.ValueKind.ShouldBe(JsonValueKind.Array);
+    parsed.GetArrayLength().ShouldBe(2);
+  }
+
+  [Fact]
+  public void GetQueryResultReturnsEmptyArrayWhenNoRows()
+  {
+    var query = "SELECT 1 AS Id WHERE 1 = 0 FOR JSON PATH";
+
+    using var connection = new SqlConnection(ConnectionString);
+    connection.Open();
+
+    var provider = new SqlJsonResultProvider();
+    var result = provider.GetQueryResult(query, connection);
+
+    result.ShouldBe("[]");
   }
 }
