@@ -1,13 +1,17 @@
 ﻿using Microsoft.Data.SqlClient;
+using System.Data.Common;
 using System.Text;
 
 namespace SimpleReportModel;
 
 public class SqlJsonResultProvider : IProvideJsonResult
 {
-  public string GetQueryResult(string queryForJson, SqlConnection connection)
+  public string GetQueryResult(string queryForJson, DbConnection connection)
   {
-    using (var cmd = connection.CreateCommand())
+    var sqlConnection = connection as SqlConnection
+      ?? throw new ArgumentException("Connection must be a SqlConnection.", nameof(connection));
+
+    using (var cmd = sqlConnection.CreateCommand())
     {
       cmd.CommandText = queryForJson;
 
