@@ -1,8 +1,8 @@
-﻿using Microsoft.Data.SqlClient;
+﻿using System.Data.Common;
 
 namespace SimpleReportModel;
 
 public interface IProvideJsonResult
 {
-  string GetQueryResult(string queryForJson, SqlConnection connection);
+  string GetQueryResult(string queryForJson, DbConnection connection);
 }

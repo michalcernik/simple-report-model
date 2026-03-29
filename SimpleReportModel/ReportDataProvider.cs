@@ -1,4 +1,4 @@
-﻿using Microsoft.Data.SqlClient;
+﻿using System.Data.Common;
 using System.Text.Json;
 
 namespace SimpleReportModel;
@@ -11,8 +11,8 @@ public class ReportDataProvider : IProvideReportData
   {
     this.jsonProvider = jsonProvider;
   }
-  
-  public IReadOnlyCollection<T> Get<T>(string queryForJson, SqlConnection connection, Action<JsonSerializerOptions> setupOptions = null)
+
+  public IReadOnlyCollection<T> Get<T>(string queryForJson, DbConnection connection, Action<JsonSerializerOptions> setupOptions = null)
     where T : class
   {
     var json = jsonProvider.GetQueryResult(queryForJson, connection);
