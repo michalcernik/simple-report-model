@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+﻿using Shouldly;
 using Moq;
 using System.Data.Common;
 using System.Text.Json;
@@ -25,8 +25,8 @@ public class ReportDataProviderTest
 
     var returnedData = testedInstance.Get<EmptyClass>(string.Empty, null);
 
-    returnedData.Should().NotBeNull();
-    returnedData.Should().BeEmpty();
+    returnedData.ShouldNotBeNull();
+    returnedData.ShouldBeEmpty();
   }
 
   [Fact]
@@ -37,8 +37,8 @@ public class ReportDataProviderTest
 
     var returnedData = testedInstance.Get<EmptyClass>(string.Empty, null);
 
-    returnedData.Should().NotBeNullOrEmpty();
-    returnedData.Count.Should().Be(2);
+    returnedData.ShouldNotBeEmpty();
+    returnedData.Count.ShouldBe(2);
   }
 
   [Fact]
@@ -49,7 +49,7 @@ public class ReportDataProviderTest
 
     var action = () => testedInstance.Get<EmptyClass>(string.Empty, null);
 
-    action.Should().Throw<JsonException>();
+    action.ShouldThrow<JsonException>();
   }
 
   [Fact]
@@ -60,10 +60,10 @@ public class ReportDataProviderTest
 
     var returnedData = testedInstance.Get<PersonClass>(string.Empty, null);
 
-    returnedData.Should().ContainSingle();
+    returnedData.ShouldHaveSingleItem();
     var item = returnedData.Single();
-    item.Name.Should().Be("Alice");
-    item.Age.Should().Be(30);
+    item.Name.ShouldBe("Alice");
+    item.Age.ShouldBe(30);
   }
 
   [Fact]
@@ -76,8 +76,8 @@ public class ReportDataProviderTest
       string.Empty, null,
       opts => opts.PropertyNameCaseInsensitive = true);
 
-    returnedData.Should().ContainSingle();
-    returnedData.Single().Name.Should().Be("Alice");
+    returnedData.ShouldHaveSingleItem();
+    returnedData.Single().Name.ShouldBe("Alice");
   }
 
   [Fact]

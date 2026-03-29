@@ -1,4 +1,4 @@
-using FluentAssertions;
+using Shouldly;
 using Moq;
 using Moq.Protected;
 using System.Data;
@@ -35,6 +35,6 @@ public class SqlJsonResultProviderTest
     var provider = new SqlJsonResultProvider();
     var result = provider.GetQueryResult("SELECT * FOR JSON PATH", connectionMock.Object);
 
-    result.Should().Be("[{\"Id\":1},{\"Id\":2}]");
+    result.ShouldBe("[{\"Id\":1},{\"Id\":2}]");
   }
 }
